@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Multi-Video Example</title>
+    <style>
+        #videos-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        video {
+            margin: 10px;
+            max-width: 300px;
+            max-height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div id="videos-container"></div>
+    <video id="localVideo" autoplay muted></video>
+
+    <script>
+        // WebRTC configuration
+        const configuration = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+        const rtcPeerConnection = new RTCPeerConnection(configuration);
+
+        // Get local media stream
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then((localStream) => {
+                const localVideo = document.getElementById("localVideo");
+                localVideo.srcObject = localStream;
+                
+                // Add the local stream to the RTCPeerConnection
+                localStream.getTracks().forEach((track) => {
+                    rtcPeerConnection.addTrack(track, localStream);
+                });
+            })
+            .catch((error) => {
+                console.error("Error accessing media devices:", error);
+            });
+
+        // Function to dynamically add a video element for a new user
+        function addRemoteVideo(stream) {
+            const videosContainer = document.getElementById("videos-container");
+
+            // Create a new video element
+            const remoteVideo = document.createElement("video");
+            remoteVideo.srcObject = stream;
+            remoteVideo.autoplay = true;
+
+            // Append the video element to the container
+            videosContainer.appendChild(remoteVideo);
+        }
+
+        // Event listener for remote tracks
+        rtcPeerConnection.ontrack = (event) => {
+            // Add the remote stream dynamically
+            addRemoteVideo(event.streams[0]);
+        };
+
+        // Example of dynamically adding multiple video elements
+        function addMultipleRemoteVideos() {
+            // Assume remoteStreams is an array of MediaStreams obtained from other users
+
+            remoteStreams.forEach((stream) => {
+                addRemoteVideo(stream);
+            });
+        }
+    </script>
+</body>
+</html>
