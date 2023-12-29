@@ -463,7 +463,7 @@ function handleIceCandidate(config) {
 function handleDisconnect() {
     console.log('Disconnected from signaling server');
     for (let peerId in peerMediaElements) {
-        var childNode = peerMediaElements[peerId].parentNode.parentNode;
+        var childNode = peerMediaElements[peerId].parentNode;
         childNode.parentNode.removeChild(childNode);
     }
     for (let peerId in peerConnections) {
@@ -472,6 +472,8 @@ function handleDisconnect() {
     peerConnections = {};
     peerMediaElements = {};
     dataChannels = {};
+
+    resizeVideoMedia();
 }
 
 function handleRemovePeer(config) {
@@ -479,7 +481,7 @@ function handleRemovePeer(config) {
     const { peerId } = config;
 
     if (peerId in peerMediaElements){
-        var childNode = peerMediaElements[peerId].parentNode.parentNode;
+        var childNode = peerMediaElements[peerId].parentNode;
         childNode.parentNode.removeChild(childNode);
     } 
     if (peerId in peerConnections) peerConnections[peerId].close();
@@ -765,9 +767,25 @@ function resizeVideoMedia() {
     setWidth(Cameras, max, bigWidth, Margin, Height, isOneVideoElement);
     document.documentElement.style.setProperty('--vmi-wh', max / 3 + 'px');
 }
+
+// ####################################################
+// RESPONSIVE PARTICIPANTS VIEW
+// ####################################################
+
+let customRatio = true;
+
 // aspect       0      1      2      3       4
-//let ratios = ['0:0', '4:3', '16:9', '1:1', '1:2'];
-var ratio = 4 / 3;
+let ratios = ['0:0', '4:3', '16:9', '1:1', '1:2'];
+let aspect = 2;
+
+let ratio = getAspectRatio();
+
+function getAspectRatio() {
+    customRatio = aspect == 0 ? true : false;
+    var ratio = ratios[aspect].split(':');
+    return ratio[1] / ratio[0];
+}
+
 function Area(Increment, Count, Width, Height, Margin = 10) {
     let i = 0;
     let w = 0;
@@ -793,6 +811,7 @@ function resetZoom() {
 }
 
 function setWidth(Cameras, width, bigWidth, margin, maxHeight, isOneVideoElement) {
+    ratio = customRatio ? 0.75 : ratio;
     for (let s = 0; s < Cameras.length; s++) {
         Cameras[s].style.width = width + 'px';
         Cameras[s].style.margin = margin + 'px';
@@ -1556,6 +1575,21 @@ window.addEventListener(
     function (event) {
         resetVideoZoom();
         window.onresize = resetVideoZoom;
+    },
+    false,
+);
+
+// ####################################################
+// WINDOW LOAD/RESIZE EVENT
+// ####################################################
+
+window.addEventListener(
+    'load',
+    function (event) {
+        resizeVideoMedia();
+        window.onresize = function () {
+            resizeVideoMedia();
+        };
     },
     false,
 );
