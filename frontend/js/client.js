@@ -158,6 +158,8 @@ let videoFpsSelectedIndex = 0;
 
 let surveyURL = false;
 let redirectURL = false;
+let screenSharingTrack;
+let isVideoHidden = false;
 
 const tooltips = [
     { element: shareRoomBtn, text: 'Share room URL', position: 'top' },
@@ -180,7 +182,7 @@ const tooltips = [
 ];
 
 function getDocumentElementsById() {
-    myVideo = document.getElementById('myVideo');
+    myVideo = document.getElementById('localVideo');
     myVideoWrap = document.getElementById('myVideoWrap');
     myVideoAvatarImage = document.getElementById('myVideoAvatarImage');
     myAudioStatusIcon = document.getElementById('myAudioStatusIcon');
@@ -583,7 +585,7 @@ function setLocalMedia(stream) {
     console.log('Access granted to audio/video');
     localMediaStream = stream;
     const myVideoWrap = document.createElement('div');
-    //const myLocalMedia = document.createElement('video');
+    const myLocalMedia = document.createElement('video');
     const myVideoHeader = document.createElement('div');
     const myVideoFooter = document.createElement('div');
     const myVideoPeerName = document.createElement('h4');
@@ -614,23 +616,24 @@ function setLocalMedia(stream) {
     myVideoHeader.appendChild(myVideoRotateBtn);
     myVideoHeader.appendChild(myAudioStatusIcon);
     myVideoFooter.appendChild(myVideoPeerName);
-    // myLocalMedia.id = 'myVideo';
-    // myLocalMedia.className = 'mirror';
-    // myLocalMedia.playsInline = true;
-    // myLocalMedia.autoplay = true;
-    // myLocalMedia.muted = true;
-    // myLocalMedia.volume = 0;
-    // myLocalMedia.controls = false;
-    // myLocalMedia.style.objectFit = config.keepAspectRatio ? 'contain' : 'cover';
-
-    const myLocalMedia = document.getElementById("localVideo");
+    myLocalMedia.id = 'localVideo';
+    myLocalMedia.className = 'mirror';
+    myLocalMedia.playsInline = true;
+    myLocalMedia.autoplay = true;
+    myLocalMedia.muted = true;
+    myLocalMedia.volume = 0;
+    myLocalMedia.controls = false;
+    myLocalMedia.style.objectFit = config.keepAspectRatio ? 'contain' : 'cover';
     myVideoWrap.id = 'myVideoWrap';
-    myVideoWrap.className = 'myVideoWrap';
+    myVideoWrap.className = 'Camera';
     myVideoWrap.appendChild(myVideoHeader);
     myVideoWrap.appendChild(myVideoFooter);
     myVideoWrap.appendChild(myVideoAvatarImage);
     myVideoWrap.appendChild(myLocalMedia);
-    document.body.appendChild(myVideoWrap);
+	const localContainer = document.getElementById("videos-container");
+    localContainer.appendChild(myVideoWrap);
+    // localContainer.style.display='';
+    //document.body.appendChild(myVideoWrap);
     logStreamSettingsInfo('localMediaStream', localMediaStream);
     attachMediaStream(myLocalMedia, localMediaStream);
     handlePictureInPicture(myVideoPiPBtn, myLocalMedia);
@@ -642,6 +645,8 @@ function setLocalMedia(stream) {
     setTippy(myAudioStatusIcon, 'Audio status', 'bottom');
     setTippy(myVideoPeerName, 'Username', 'top');
     startSessionTime();
+    handleAspectRatio();
+
 }
 
 function setRemoteMedia(stream, peers, peerId) {
@@ -691,13 +696,14 @@ function setRemoteMedia(stream, peers, peerId) {
     const videosContainer = document.getElementById("videos-container");
     peerMediaElements[peerId] = remoteMedia;
     remoteVideoElem.id = peerId + '_remoteVideoWrap';
-    remoteVideoElem.className = 'remoteVideoWrap';
+    remoteVideoElem.className = 'Camera';
     remoteVideoElem.appendChild(remoteVideoHeader);
     remoteVideoElem.appendChild(remoteVideoFooter);
     remoteVideoElem.appendChild(remoteVideoAvatarImage);
     remoteVideoElem.appendChild(remoteMedia);
-    remoteVideoWrap.appendChild(remoteVideoElem);
-    videosContainer.appendChild(remoteVideoWrap);
+    //remoteVideoWrap.appendChild(remoteVideoElem);
+    videosContainer.appendChild(remoteVideoElem);
+    //videosContainer.style.display ="";
     //document.body.appendChild(remoteVideoWrap);
     attachMediaStream(remoteMedia, remoteMediaStream);
     handleFullScreen(remoteFullScreenBtn, remoteVideoWrap, remoteMedia);
@@ -712,6 +718,92 @@ function setRemoteMedia(stream, peers, peerId) {
     setTippy(remoteVideoRotateBtn, 'Rotate video', 'bottom');
     setTippy(remoteAudioStatusIcon, 'Audio status', 'bottom');
     setTippy(remoteVideoPeerName, 'Username', 'top');
+    handleAspectRatio();
+}
+
+function handleAspectRatio(){
+	resizeVideoMedia();
+}
+
+function resizeVideoMedia() {
+    let Margin = 5;
+    let videoMediaContainer = document.getElementById('videos-container');
+    let Cameras = document.getElementsByClassName('Camera');
+    let Width = videoMediaContainer.offsetWidth - Margin * 2;
+    let Height = videoMediaContainer.offsetHeight - Margin * 2;
+    let max = 0;
+    let optional = isVideoHidden && videoMediaContainer.childElementCount <= 2 ? 1 : 0;
+    let isOneVideoElement = videoMediaContainer.childElementCount - optional == 1 ? true : false;
+	
+
+    // console.log('videoMediaContainer.childElementCount:', {
+    //     isOneVideoElement: isOneVideoElement,
+    //     children: videoMediaContainer.childElementCount,
+    //     optional: optional,
+    // });
+
+    // full screen mode
+    let bigWidth = Width * 4;
+    if (isOneVideoElement) {
+        Width = Width - bigWidth;
+    }
+
+    resetZoom();
+
+    // loop (i recommend you optimize this)
+    let i = 1;
+    while (i < 5000) {
+        let w = Area(i, Cameras.length, Width, Height, Margin);
+        if (w === false) {
+            max = i - 1;
+            break;
+        }
+        i++;
+    }
+
+    max = max - Margin * 2;
+    setWidth(Cameras, max, bigWidth, Margin, Height, isOneVideoElement);
+    document.documentElement.style.setProperty('--vmi-wh', max / 3 + 'px');
+}
+// aspect       0      1      2      3       4
+//let ratios = ['0:0', '4:3', '16:9', '1:1', '1:2'];
+var ratio = 4 / 3;
+function Area(Increment, Count, Width, Height, Margin = 10) {
+    let i = 0;
+    let w = 0;
+    let h = Increment * ratio + Margin * 2;
+    while (i < Count) {
+        if (w + Increment > Width) {
+            w = 0;
+            h = h + Increment * ratio + Margin * 2;
+        }
+        w = w + Increment + Margin * 2;
+        i++;
+    }
+    if (h > Height) return false;
+    else return Increment;
+}
+
+function resetZoom() {
+    const videoElements = document.querySelectorAll('video');
+    videoElements.forEach((video) => {
+        video.style.transform = '';
+        video.style.transformOrigin = 'center';
+    });
+}
+
+function setWidth(Cameras, width, bigWidth, margin, maxHeight, isOneVideoElement) {
+    for (let s = 0; s < Cameras.length; s++) {
+        Cameras[s].style.width = width + 'px';
+        Cameras[s].style.margin = margin + 'px';
+        Cameras[s].style.height = width * ratio + 'px';
+        if (isOneVideoElement) {
+            Cameras[s].style.width = bigWidth + 'px';
+            Cameras[s].style.height = bigWidth * ratio + 'px';
+            let camHeigh = Cameras[s].style.height.substring(0, Cameras[s].style.height.length - 2);
+            if (camHeigh >= maxHeight) Cameras[s].style.height = maxHeight - 2 + 'px';
+        }
+    }
 }
 
 function handleIncomingDataChannelMessage(config) {
@@ -891,16 +983,22 @@ function showWaitingUser() {
 }
 
 function toggleHideMe() {
-    const isVideoWrapHidden = myVideoWrap.style.display == 'none';
-    hideMeBtn.className = isVideoWrapHidden ? className.user : className.userOff;
-    initHideMeBtn.className = isVideoWrapHidden ? className.user : className.userOff;
-    if (isVideoWrapHidden) {
-        elemDisplay(myVideoWrap, true);
-        animateCSS(myVideoWrap, 'fadeInLeft');
-    } else {
-        animateCSS(myVideoWrap, 'fadeOutLeft').then((msg) => {
+    if(myVideoWrap && typeof myVideoWrap != 'undefined'){
+        const isVideoWrapHidden = myVideoWrap.style.display == 'none';
+        hideMeBtn.className = isVideoWrapHidden ? className.user : className.userOff;
+        initHideMeBtn.className = isVideoWrapHidden ? className.user : className.userOff;
+        if (isVideoWrapHidden) {
+            elemDisplay(myVideoWrap, true);
+            //animateCSS(myVideoWrap, 'fadeInLeft');
+            isVideoHidden = true;
+        } else {
             elemDisplay(myVideoWrap, false);
-        });
+            isVideoHidden = false;
+            // animateCSS(myVideoWrap, 'fadeOutLeft').then((msg) => {
+                
+            // });
+        }
+        resizeVideoMedia();
     }
 }
 
@@ -945,20 +1043,30 @@ async function toggleScreenSharing() {
     let screenMediaPromise = null;
     try {
         if (!isScreenStreaming) {
-            isMyVideoActiveBefore = localMediaStream.getVideoTracks()[0].enabled;
+            screenSharingTrack = localMediaStream.getVideoTracks()[0];
+            isMyVideoActiveBefore = screenSharingTrack.enabled;
             console.log('Is my video active before screen sharing: ' + isMyVideoActiveBefore);
         }
         screenMediaPromise = isScreenStreaming
             ? await navigator.mediaDevices.getUserMedia({ video: true })
             : await navigator.mediaDevices.getDisplayMedia(constraints);
         if (screenMediaPromise) {
+            // Remove the previous event listener (if any)
+            if (screenSharingTrack) {
+                screenSharingTrack.removeEventListener('ended', handleScreenSharingEnded);
+            }
+
+            // Add the 'ended' event listener to the new screen sharing track
+            screenSharingTrack = screenMediaPromise.getVideoTracks()[0];
+            screenSharingTrack.addEventListener('ended', handleScreenSharingEnded);
+
             localMediaStream.getVideoTracks()[0].stop();
             isScreenStreaming = !isScreenStreaming;
             refreshMyLocalVideoStream(screenMediaPromise);
             refreshMyVideoStreamToPeers(screenMediaPromise);
             setVideoStatus(isScreenStreaming);
             setScreenStatus(isScreenStreaming);
-            myVideo.classList.toggle('mirror');
+            //myVideo.classList.toggle('mirror');
             myVideo.style.objectFit = isScreenStreaming || config.keepAspectRatio ? 'contain' : 'cover';
             initScreenShareBtn.className = isScreenStreaming ? className.screenOff : className.screenOn;
             screenShareBtn.className = isScreenStreaming ? className.screenOff : className.screenOn;
@@ -967,6 +1075,13 @@ async function toggleScreenSharing() {
     } catch (err) {
         console.error('[Error] unable to share the screen', err);
         popupMessage('error', 'Screen sharing', 'Unable to share the screen ' + err);
+    }
+}
+
+function handleScreenSharingEnded() {
+    console.log('Screen sharing track ended');
+    if (screenSharingTrack) {
+        toggleScreenSharing();
     }
 }
 
