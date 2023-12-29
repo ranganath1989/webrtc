@@ -169,7 +169,7 @@ const tooltips = [
     { element: initAudioBtn, text: 'Toggle audio', position: 'top' },
     { element: initScreenShareBtn, text: 'Toggle screen sharing', position: 'top' },
     // { element: initSettingsBtn, text: 'Toggle settings', position: 'top' },
-    { element: initHomeBtn, text: 'Go to home page', position: 'top' },
+    { element: initHomeBtn, text: 'Leave Room', position: 'top' },
     { element: hideMeBtn, text: 'Hide myself', position: 'top' },
     { element: videoBtn, text: 'Toggle video', position: 'top' },
     { element: audioBtn, text: 'Toggle audio', position: 'top' },
@@ -177,7 +177,7 @@ const tooltips = [
     { element: screenShareBtn, text: 'Toggle screen sharing', position: 'top' },
     { element: chatOpenBtn, text: 'Toggle chat', position: 'top' },
     // { element: settingsBtn, text: 'Toggle settings', position: 'top' },
-    { element: homeBtn, text: 'Go to home page', position: 'top' },
+    { element: homeBtn, text: 'Leave Room', position: 'top' },
     //...
 ];
 
