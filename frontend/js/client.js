@@ -216,6 +216,20 @@ function initClient() {
     console.log('Connecting to signaling server');
     signalingSocket = io({ transports: ['websocket'] });
 
+    // async - await requests
+    signalingSocket.request = function request(type, data = {}) {
+        return new Promise((resolve, reject) => {
+            signalingSocket.emit(type, data, (data) => {
+                if (data.error) {
+                    console.error('signalingSocket.request error', data.error);
+                    reject(data.error);
+                } else {
+                    console.log('signalingSocket.request data', data);
+                    resolve(data);
+                }
+            });
+        });
+    };
     signalingSocket.on('connect', handleConnect);
     signalingSocket.on('error', handleError);
     signalingSocket.on('serverInfo', handleServerInfo);
@@ -231,14 +245,14 @@ async function sendToServer(msg, config = {}) {
     await signalingSocket.emit(msg, config);
 }
 
-function handleConnect() {
+async function handleConnect() {
     console.log('Connected to signaling server');
     thisPeerId = signalingSocket.id;
     console.log('This peer id: ' + thisPeerId);
     if (localMediaStream) {
-        joinToChannel();
+       await joinToChannel();
     } else {
-        setupLocalMedia(() => {
+        await setupLocalMedia(() => {
             enumerateDevices();
             handleVideoWrapSize();
             getDocumentElementsById();
@@ -253,7 +267,7 @@ function handleError(error) {
     console.error('WebSocket connection error:', error);
 }
 
-function joinToChannel() {
+async function joinToChannel() {
     console.log('Join to channel', roomId);
     sendToServer('join', {
         channel: roomId,
@@ -282,7 +296,7 @@ function handleServerInfo(config) {
     surveyURL = config.surveyURL;
 }
 
-function handleAddPeer(config) {
+async function handleAddPeer(config) {
     // if (roomPeersCount > 2) {
     //     return roomIsBusy();
     // }
@@ -300,14 +314,14 @@ function handleAddPeer(config) {
     const peerConnection = new RTCPeerConnection({ iceServers: iceServers });
     peerConnections[peerId] = peerConnection;
 
-    handlePeersConnectionStatus(peerId);
-    handleOnIceCandidate(peerId);
-    handleRTCDataChannels(peerId);
-    handleOnTrack(peerId, peers);
-    handleAddTracks(peerId);
+    await handlePeersConnectionStatus(peerId);
+    await handleOnIceCandidate(peerId);
+    await handleRTCDataChannels(peerId);
+    await handleOnTrack(peerId, peers);
+    await handleAddTracks(peerId);
 
     if (shouldCreateOffer) {
-        handleRtcOffer(peerId);
+        await handleRtcOffer(peerId);
     }
     if (thereIsPeerConnections()) {
         elemDisplay(waitingDivContainer, false);
@@ -336,14 +350,14 @@ function roomIsBusy() {
     });
 }
 
-function handlePeersConnectionStatus(peerId) {
+async function handlePeersConnectionStatus(peerId) {
     peerConnections[peerId].onconnectionstatechange = function (event) {
         const connectionStatus = event.currentTarget.connectionState;
         console.log('Connection', { peerId: peerId, connectionStatus: connectionStatus });
     };
 }
 
-function handleOnIceCandidate(peerId) {
+async function handleOnIceCandidate(peerId) {
     peerConnections[peerId].onicecandidate = (event) => {
         if (!event.candidate) return;
         sendToServer('relayICE', {
@@ -375,7 +389,7 @@ async function handleRTCDataChannels(peerId) {
     };
 }
 
-function handleOnTrack(peerId, peers) {
+async function handleOnTrack(peerId, peers) {
     peerConnections[peerId].ontrack = (event) => {
         console.log('Handle on track event', event);
         if (event.track.kind === 'video') {
@@ -384,13 +398,13 @@ function handleOnTrack(peerId, peers) {
     };
 }
 
-function handleAddTracks(peerId) {
+async function handleAddTracks(peerId) {
     localMediaStream.getTracks().forEach((track) => {
         peerConnections[peerId].addTrack(track, localMediaStream);
     });
 }
 
-function handleRtcOffer(peerId) {
+async function handleRtcOffer(peerId) {
     peerConnections[peerId].onnegotiationneeded = () => {
         console.log('Creating RTC offer to', peerId);
         peerConnections[peerId]
@@ -499,6 +513,7 @@ function handleRemovePeer(config) {
 
     console.log('Peers count: ' + Object.keys(peerConnections).length);
     playSound('leave');
+    resizeVideoMedia();
 }
 
 function setupLocalMedia(callback, errorBack) {
@@ -548,8 +563,8 @@ function setupLocalMedia(callback, errorBack) {
         });
 }
 
-function enumerateDevices() {
-    navigator.mediaDevices
+async function enumerateDevices() {
+    await navigator.mediaDevices
         .enumerateDevices()
         .then((devices) => {
             const videoDevices = devices.filter(
@@ -1569,15 +1584,6 @@ function setPeerScreenStatus(peerId, active) {
     peerVideo.style.objectFit = active ? 'contain' : 'cover';
     elemDisplay(peerVideoAvatarImage, active ? false : true);
 }
-
-window.addEventListener(
-    'load',
-    function (event) {
-        resetVideoZoom();
-        window.onresize = resetVideoZoom;
-    },
-    false,
-);
 
 // ####################################################
 // WINDOW LOAD/RESIZE EVENT

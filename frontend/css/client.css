@@ -50,14 +50,25 @@ body {
     position: absolute;
     z-index: 0;
     display: none;
-    width: 100%;
-    height: 100%;
+    width: 22%;
+    height: 60%;
+    z-index: 1;
+    left: 35%;
+    top:2%;
 }
 
-#loadingDiv,
-#waitingDiv {
+#loadingDiv {
     min-width: 290px;
     padding: 30px;
+    border: var(--border);
+    border-radius: var(--border-radius);
+    background: var(--secondary-color);
+    color: #ffffff;
+}
+
+#waitingDiv {
+    min-width: 250px;
+    padding: 15px;
     border: var(--border);
     border-radius: var(--border-radius);
     background: var(--secondary-color);
