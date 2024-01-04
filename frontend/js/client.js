@@ -1024,10 +1024,10 @@ function toggleHideMe() {
         if (isVideoWrapHidden) {
             elemDisplay(myVideoWrap, true);
             //animateCSS(myVideoWrap, 'fadeInLeft');
-            isVideoHidden = true;
+            isVideoHidden = false;
         } else {
             elemDisplay(myVideoWrap, false);
-            isVideoHidden = false;
+            isVideoHidden = true;
             // animateCSS(myVideoWrap, 'fadeOutLeft').then((msg) => {
                 
             // });
