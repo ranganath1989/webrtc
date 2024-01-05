@@ -718,12 +718,12 @@ function setRemoteMedia(stream, peers, peerId) {
     remoteVideoElem.appendChild(remoteVideoFooter);
     remoteVideoElem.appendChild(remoteVideoAvatarImage);
     remoteVideoElem.appendChild(remoteMedia);
-    //remoteVideoWrap.appendChild(remoteVideoElem);
-    videosContainer.appendChild(remoteVideoElem);
+    remoteVideoWrap.appendChild(remoteVideoElem);
+    videosContainer.appendChild(remoteVideoWrap);
     //videosContainer.style.display ="";
     //document.body.appendChild(remoteVideoWrap);
     attachMediaStream(remoteMedia, remoteMediaStream);
-    handleFullScreen(remoteFullScreenBtn, remoteVideoWrap, remoteMedia);
+    handleFullScreen(remoteFullScreenBtn, remoteVideoElem, remoteMedia);
     handlePictureInPicture(remoteVideoPiPBtn, remoteMedia);
     handleVideoRotate(remoteVideoRotateBtn, remoteMedia);
     handleVideoZoom(remoteMedia, remoteVideoWrap, remoteVideoAvatarImage);
@@ -1401,10 +1401,40 @@ function handleFullScreen(fullScreenBtn, videoWrap, videoMedia) {
             fullScreenBtn.className = className.fullScreenOff;
         }
     };
-    videoMedia.onclick = () => {
-        if (isDesktopDevice) fullScreenBtn.click();
-    };
+    // videoMedia.onclick = () => {
+    //     if (isDesktopDevice) fullScreenBtn.click();
+    // };
 }
+
+document.addEventListener('fullscreenchange', function () {
+    // Check if the document is no longer in fullscreen
+    var isRequired = false;
+    if (!document.fullscreenElement) {
+        let videoMediaContainer = document.getElementById('videos-container');
+        if(videoMediaContainer.childElementCount === 1){
+            var fullScreenBtn = document.getElementById("myFullScreen");
+            if(fullScreenBtn && fullScreenBtn.className === className.fullScreenOff){
+                fullScreenBtn.className = className.fullScreenOn;
+            }
+        }else {
+            var fullScreenBtn = document.getElementById("myFullScreen");
+            if(fullScreenBtn && fullScreenBtn.className === className.fullScreenOff){
+                fullScreenBtn.className = className.fullScreenOn;
+                isRequired = true;
+            }
+            if(!isRequired){
+                for (let peerId in peerConnections) {
+                    var fullScreenBtn = document.getElementById(peerId+"_remoteFullScreen");
+                    if(fullScreenBtn && fullScreenBtn.className === className.fullScreenOff){
+                        fullScreenBtn.className = className.fullScreenOn;
+                        break;
+                    }
+                }
+            }
+        }
+
+    }
+});
 
 function handleVideoZoom(videoMedia, videoWrap, videoAvatarImage) {
     const zoom_center_mode = false;
