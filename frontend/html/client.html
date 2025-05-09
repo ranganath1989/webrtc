@@ -281,39 +281,6 @@
                 }
             }
 
-	    /* Styling for recording controls */
-#recordingControls {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: rgba(0, 0, 0, 0.5);
-    padding: 10px;
-    border-radius: 8px;
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-}
-
-#recordingControls button {
-    color: white;
-    background-color: #007bff;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-#recordingControls button:hover {
-    background-color: #0056b3;
-}
-
-#recordingControls button:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
-}
-
         </style>
     </head>
 
@@ -347,6 +314,7 @@ access to use this app.
                 <button id="initAudioBtn" class="fas fa-microphone"></button>
                 <button id="initScreenShareBtn" class="fas fa-desktop"></button>
                 <!-- <button id="initSettingsBtn" class="fas fa-ellipsis-vertical"></button> -->
+                <button id="recordBtn" class="fas fa-circle" title="Start Recording"></button>
                 <button id="initHomeBtn" class="fas fa-right-from-bracket"></button>
             </div>
         </div>
@@ -359,6 +327,7 @@ access to use this app.
             <button id="screenShareBtn" class="fas fa-desktop"></button>
             <button id="chatOpenBtn" class="fas fa-comments"></button>
             <!-- <button id="settingsBtn" class="fas fa-ellipsis-vertical"></button> -->
+             <button id="recordBtn" class="fas fa-circle" title="Start Recording"></button>
             <button id="homeBtn" class="fas fa-right-from-bracket"></button>
         </div>
 
@@ -430,19 +399,10 @@ access to use this app.
             </div>
         </div>
 
-
-        <!-- Recording Controls -->
-        <div id="recordingControls">
-            <button id="startRecordingBtn">Start Recording</button>
-            <button id="stopRecordingBtn" style="display:none;">Stop Recording</button>
-            <button id="downloadRecordingBtn" style="display:none;">Download Recording</button>
-        </div>
-
         <script>
             function googleTranslateElementInit() {
                 new google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
             }
-
         </script>
         <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     </body>

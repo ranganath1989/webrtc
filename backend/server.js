@@ -19,6 +19,10 @@ const isHttps = true;
 const port = process.env.PORT || 8080;
 const queryJoin = '/join?room=test&name=test';
 const queryRoom = '/?room=test';
+const recordings = {};  // Key: roomId, Value: { browser, ffmpeg, peerName }
+const { spawn } = require('child_process');
+const { startRecording, stopRecording } = require('../webrtc-recorder/recorder');
+
 
 let server;
 console.log("process.env.HTTPS >>>> " + process.env.HTTPS);
@@ -238,6 +242,45 @@ io.sockets.on('connect', (socket) => {
         sendToRoom(roomId, socket.id, 'peerStatus', data);
 
         log.debug('[' + socket.id + '] emit peerStatus to [roomId: ' + roomId + ']', data);
+    });
+
+    socket.on('start-recording', async (data) => {
+        const { roomId, peerName } = data;
+        log.debug(`[${socket.id}] requested START recording for room: ${roomId}, peer: ${peerName}`);
+    
+        if (recordings[roomId]) {
+            log.debug(`[${socket.id}] recording already active for room: ${roomId}`);
+            return;
+        }
+    
+        try {
+            const roomUrl = `${host}/join?room=${encodeURIComponent(roomId)}&name=${encodeURIComponent(peerName)}&isRecorder=true`;
+            log.debug(`Launching headless browser to: ${roomUrl}`);
+    
+            const recordingSession = await startRecording(roomUrl, roomId);
+            recordings[roomId] = { ...recordingSession, peerName };
+            log.debug(`Recording started for room: ${roomId}, peer: ${peerName}`);
+        } catch (err) {
+            log.error(`Failed to start recording for room ${roomId}`, err);
+        }
+    });
+    
+    socket.on('stop-recording', async (data) => {
+        const { roomId, peerName } = data;
+        log.debug(`[${socket.id}] requested STOP recording for room: ${roomId}, peer: ${peerName}`);
+    
+        if (!recordings[roomId]) {
+            log.debug(`No active recording found for room: ${roomId}`);
+            return;
+        }
+    
+        try {
+            await stopRecording(recordings[roomId]);
+            delete recordings[roomId];
+            log.debug(`Recording stopped for room: ${roomId}, peer: ${peerName}`);
+        } catch (err) {
+            log.error(`Failed to stop recording for room ${roomId}`, err);
+        }
     });
 
     async function addPeerTo(channel) {

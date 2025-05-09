@@ -39,6 +39,7 @@ const chatBody = document.getElementById('chatBody');
 const chatCloseBtn = document.getElementById('chatCloseBtn');
 const chatInput = document.getElementById('chatInput');
 const chatSendBtn = document.getElementById('chatSendBtn');
+const recordBtn = document.getElementById('recordBtn');
 
 const roomURL = window.location.origin + '/?room=' + roomId;
 
@@ -160,6 +161,8 @@ let surveyURL = false;
 let redirectURL = false;
 let screenSharingTrack;
 let isVideoHidden = false;
+let isRecording = false;
+
 
 const tooltips = [
     { element: shareRoomBtn, text: 'Share room URL', position: 'top' },
@@ -1614,6 +1617,23 @@ function setPeerScreenStatus(peerId, active) {
     peerVideo.style.objectFit = active ? 'contain' : 'cover';
     elemDisplay(peerVideoAvatarImage, active ? false : true);
 }
+
+recordBtn.addEventListener('click', () => {
+    isRecording = !isRecording;
+
+    // Toggle icon and tooltip
+    recordBtn.classList.toggle('fa-circle', !isRecording);
+    recordBtn.classList.toggle('fa-stop', isRecording);
+    recordBtn.title = isRecording ? 'Stop Recording' : 'Start Recording';
+
+    const message = isRecording ? 'start-recording' : 'stop-recording';
+
+    // Send via socket or fetch to server.js
+    socket.emit(message, {
+        roomId: roomId, // ensure this is available in your client.js
+        peerName: displayName, // if needed
+    });
+});
 
 // ####################################################
 // WINDOW LOAD/RESIZE EVENT
