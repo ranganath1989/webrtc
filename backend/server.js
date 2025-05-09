@@ -245,8 +245,10 @@ io.sockets.on('connect', (socket) => {
     });
 
     socket.on('start-recording', async (data) => {
+        console.log("Inside Start Recording")
         const { roomId, peerName } = data;
         log.debug(`[${socket.id}] requested START recording for room: ${roomId}, peer: ${peerName}`);
+        console.log(`[${socket.id}] requested START recording for room: ${roomId}, peer: ${peerName}`);
     
         if (recordings[roomId]) {
             log.debug(`[${socket.id}] recording already active for room: ${roomId}`);

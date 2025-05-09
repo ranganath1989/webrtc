@@ -244,8 +244,8 @@ function initClient() {
     signalingSocket.on('removePeer', handleRemovePeer);
 }
 
-async function sendToServer(msg, config = {}) {
-    await signalingSocket.emit(msg, config);
+async function sendToServer(msg, config, displayName = {}) {
+    await signalingSocket.emit(msg, config, displayName);
 }
 
 async function handleConnect() {
@@ -1629,9 +1629,10 @@ recordBtn.addEventListener('click', () => {
     const message = isRecording ? 'start-recording' : 'stop-recording';
 
     // Send via socket or fetch to server.js
-    socket.emit(message, {
-        roomId: roomId, // ensure this is available in your client.js
-        peerName: displayName, // if needed
+
+    sendToServer(message, {
+        roomId: roomId,
+        peerName: peerName,
     });
 });
 
