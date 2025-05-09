@@ -1246,7 +1246,7 @@ function giveMeFeedback() {
         background: swal.background,
         imageUrl: image.feedback,
         title: 'Leave a feedback',
-        text: 'Do you want to rate Skillsoft video experience?',
+        text: 'Do you want to rate IfinConnect video experience?',
         confirmButtonText: `Yes`,
         denyButtonText: `No`,
         showClass: { popup: 'animate__animated animate__fadeInDown' },

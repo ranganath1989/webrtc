@@ -21,7 +21,7 @@ const queryJoin = '/join?room=test&name=test';
 const queryRoom = '/?room=test';
 const recordings = {};  // Key: roomId, Value: { browser, ffmpeg, peerName }
 const { spawn } = require('child_process');
-const { startRecording, stopRecording } = require('../webrtc-recorder/recorder');
+const { startRecording, stopRecording } = require('../webrtc-recorder/record');
 
 
 let server;
