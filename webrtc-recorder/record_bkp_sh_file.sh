@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# --- Check if Xvfb is already running ---
-if [ -e /tmp/.X99-lock ]; then
-    echo "Xvfb is already running on display 99. Killing the old instance..."
-    rm -f /tmp/.X99-lock
-fi
-
 # --- CONFIGURATION ---
 DISPLAY_NUM=99
 RESOLUTION=1280x720
@@ -24,27 +18,18 @@ pulseaudio --start
 
 # --- START FFMPEG RECORDING ---
 echo "Starting FFmpeg recording..."
-ffmpeg -y -video_size 1280x720 -framerate 25 -f x11grab -i :99 -an "$OUTPUT_FILE" &
+ffmpeg -y -video_size 1280x720 -framerate 25 -f x11grab -i :99 -an "webrtc_call_$timestamp.mp4" &
 
 FFMPEG_PID=$!
 
 # --- START PUPPETEER SCRIPT ---
 echo "Starting Puppeteer script..."
-node /home/ec2-user/webrtc/webrtc-recorder/record.js  # Update with the correct path
+node record.js
 
 # --- CLEANUP ---
 echo "Stopping FFmpeg and Xvfb..."
-if kill -0 $FFMPEG_PID 2>/dev/null; then
-    kill $FFMPEG_PID
-else
-    echo "FFmpeg process not running, skipping kill"
-fi
-
-if kill -0 $XVFB_PID 2>/dev/null; then
-    kill $XVFB_PID
-else
-    echo "Xvfb process not running, skipping kill"
-fi
+kill $FFMPEG_PID
+kill $XVFB_PID
 
 echo "Recording saved to $OUTPUT_FILE"
 

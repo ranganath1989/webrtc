@@ -256,7 +256,7 @@ io.sockets.on('connect', (socket) => {
         }
     
         try {
-            const roomUrl = `${host}/join?room=${encodeURIComponent(roomId)}&name=${encodeURIComponent(peerName)}&isRecorder=true`;
+            const roomUrl = `https://18.212.206.230:8080/join?room=${encodeURIComponent(roomId)}&name=${encodeURIComponent(peerName)}&isRecorder=true`;
             log.debug(`Launching headless browser to: ${roomUrl}`);
     
             const recordingSession = await startRecording(roomUrl, roomId);

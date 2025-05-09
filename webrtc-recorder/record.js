@@ -3,36 +3,40 @@ const { spawn } = require('child_process');
 const path = require('path');
 
 async function startRecording(roomUrl, roomId) {
-    const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+
+    // Define the path to your shell script
+    const scriptPath = path.join(__dirname, 'record.sh'); // Assuming start_recording.sh is in the same directory
+
+    // Run the shell script using spawn (or exec)
+    const recordingProcess = spawn('bash', [scriptPath]);
+
+    // Log any output or errors from the shell script
+    recordingProcess.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
     });
 
-    const page = await browser.newPage();
-    await page.goto(roomUrl);
-
-    const outputPath = path.join(__dirname, `recordings/${roomId}_${Date.now()}.mp4`);
-
-    const ffmpeg = spawn('ffmpeg', [
-        '-y',
-        '-f', 'x11grab',
-        '-video_size', '1280x720',
-        '-i', ':99.0',  // this depends on your setup (e.g., Xvfb)
-        '-r', '30',
-        '-codec:v', 'libx264',
-        outputPath
-    ]);
-
-    ffmpeg.stderr.on('data', (data) => {
-        console.error(`FFmpeg error: ${data}`);
+    recordingProcess.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
     });
 
-    return { browser, ffmpeg };
+    recordingProcess.on('close', (code) => {
+        if (code === 0) {
+            console.log('Recording started successfully.');
+        } else {
+            console.error(`Recording process exited with code ${code}`);
+        }
+    });
+
+    return { recordingProcess };
+
+
+
 }
 
-async function stopRecording({ browser, ffmpeg }) {
-    if (ffmpeg) ffmpeg.kill('SIGINT');
-    if (browser) await browser.close();
+async function stopRecording({ recordingProcess }) {
+    if (recordingProcess) {
+        recordingProcess.kill('SIGINT');
+    }
 }
 
 module.exports = { startRecording, stopRecording };
