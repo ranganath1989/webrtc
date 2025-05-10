@@ -25,14 +25,41 @@
 
         <script defer src="https://rawgit.com/leizongmin/js-xss/master/dist/xss.js"></script>
         <script defer src="../js/home.js"></script>
+        <style>
+            body, html {
+                height: 100%;
+                margin: 0;
+                font-family: Arial, sans-serif;
+            }
+
+            .container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start; /* top of page */
+                height: 100%;
+                padding-top: 40px; /* space from top */
+            }
+
+            .welcome-message {
+                text-align: center;
+                font-size: 2rem;
+                font-weight: bold;
+                margin-bottom: 30px;
+                color: #8895bf;
+            }
+        </style>
     </head>
     <body onload="initHome()">
-        <form>
-            <label for="room">Room</label>
-            <input id="roomIdInput" type="text" name="room" maxlength="36" required />
-            <label for="username">Username</label>
-            <input id="userNameInput" type="text" name="name" maxlength="15" required />
-            <button id="joinBtn">Join</button>
-        </form>
+        <div class="container">
+            <div class="welcome-message">Welcome to IFIN Connect</div>
+            <form>            
+                <label for="room">Room</label>
+                <input id="roomIdInput" type="text" name="room" maxlength="36" required />
+                <label for="username">Username</label>
+                <input id="userNameInput" type="text" name="name" maxlength="15" required />
+                <button id="joinBtn">Join</button>
+            </form>
+        </div>
     </body>
 </html>
